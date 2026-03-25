@@ -2,10 +2,10 @@
 // Central mock data — swap these out when connecting a real backend
 
 export const USER = {
-  name: 'Gabriel',
-  fullName: 'Gabriel Dwi Putra',
-  email: '@gabriel@doeit.com',
-  avatar: 'G',
+  name: 'Ryan',
+  fullName: 'Ryan Smith',
+  email: 'RyanSmith@gmail.com',
+  avatar: 'R',
 }
 
 export interface Transaction {

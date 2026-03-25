@@ -20,7 +20,7 @@ export default function DashboardPage() {
   )
 
   return (
-    <div>
+    <div className="px-6 md:px-10 lg:px-14 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-slate-800">Hello, {USER.name} 👋</h1>
@@ -28,7 +28,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-20 mb-8">
         <StatCard
           label="Saldo"
           value={formatRupiah(balance)}
@@ -48,7 +48,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Bottom row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
         {/* Arus Kas table */}
         <div className="card">
           <h2 className="font-semibold text-slate-700 flex items-center gap-2 mb-4">

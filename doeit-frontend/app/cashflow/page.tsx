@@ -66,10 +66,10 @@ export default function CashflowPage() {
   }).reverse()
 
   return (
-    <div>
+    <div className="px-6 md:px-10 lg:px-14 py-6">
       <h1 className="text-2xl font-bold text-slate-800 mb-8">ARUS KAS</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
         {/* Transaction list */}
         <div className="card">
           <h2 className="font-semibold text-slate-700 flex items-center gap-2 mb-4">

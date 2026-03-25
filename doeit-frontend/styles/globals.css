@@ -29,12 +29,16 @@ body {
 
 @layer components {
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-slate-100 p-5;
+    @apply bg-white rounded-lg shadow-sm border border-slate-100 p-5;
   }
 
-  .card-blue {
+  .card-blue-login {
     @apply rounded-2xl p-5 text-white;
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    background: #1177FF;
+  }
+  .card-blue {
+    @apply rounded-lg p-5 text-white;
+    background: #1177FF;
   }
 
   .btn-primary {
@@ -56,7 +60,7 @@ body {
   .nav-item {
     @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-500
            hover:bg-blue-50 hover:text-blue-600 transition-all duration-200
-           cursor-pointer text-sm font-medium;
+           cursor-pointer text-base font-medium;
   }
 
   .nav-item.active {
