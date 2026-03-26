@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { Plus, X, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Plus, X, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { useApp, Category, formatRupiah } from '@/lib/AppContext'
 
 // ── Preset emojis ─────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ function CardMenu({ onEdit, onDelete, isBlue }: { onEdit: () => void; onDelete: 
                       ? 'text-white/60 hover:text-white hover:bg-white/20'
                       : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
       >
-        <MoreHorizontal size={15} />
+        <MoreVertical size={15} />
       </button>
 
       {open && (

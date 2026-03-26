@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Lock, LogIn } from 'lucide-react'
@@ -116,8 +117,8 @@ export default function LoginPage() {
             </form>
 
             <p className="text-center text-xs text-blue-200 mt-5">
-              don&apos;t have account?{' '}
-              <a href="#" className="text-white underline font-medium">sign up here</a>
+              Don't have account?{' '}
+              <a href="/signup" className="text-white underline font-medium">sign up here</a>
             </p>
           </div>
 

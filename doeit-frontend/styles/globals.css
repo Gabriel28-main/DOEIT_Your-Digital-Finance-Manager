@@ -32,6 +32,10 @@ body {
     @apply bg-white rounded-lg shadow-sm border border-slate-100 p-5;
   }
 
+  .card-white-signup {
+    @apply rounded-2xl p-5 text-white;
+    background: #F8FAFC;
+  }
   .card-blue-login {
     @apply rounded-2xl p-5 text-white;
     background: #1177FF;

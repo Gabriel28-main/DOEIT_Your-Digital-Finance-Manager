@@ -1,8 +1,9 @@
 'use client'
+import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Lock, LogIn } from 'lucide-react'
-import DoeitLogo from '@/components/ui/DoeitLogo'
+import DoeitLogo from '@/components/ui/DoeitLogo2'
 
 function BlobShape() {
   return (
@@ -47,7 +48,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
 
   const inputClass =
-    "w-full bg-white rounded-3xl pl-10 pr-4 py-3 text-sm text-slate-700 placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+    "w-full bg-[#1177FF] rounded-3xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
 
   const handleChange = (field: 'username' | 'password', value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -68,34 +69,30 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
 
-      {/* ── Left panel: white bg, blue blob, logo centred inside blob ── */}
+      {/* ── Left panel: blue bg with blob + logo ── */}
       <div className="hidden md:flex flex-1 relative bg-[#1177FF] items-center justify-center overflow-hidden">
-
         <BlobShape />
-
-        <div className="relative z-10rounded-3xl px-10 py-6 translate-x-40">
-          <DoeitLogo width={480} variant="color"/>
-          {/*               ↑ CHANGE THIS NUMBER to resize the logo */}
+        <div className="relative z-10 translate-x-40">
+          <DoeitLogo className="w-[340px] md:w-[380px] lg:w-[420px] xl:w-[480px] h-auto" />
         </div>
-
       </div>
 
       {/* ── Right panel: login card ── */}
-      <div className="flex-1 flex items-center justify-center bg-slate-50 p-8">
+      <div className="flex-1 flex items-center justify-center bg-[#1177FF] p-8">
         <div className="w-full max-w-xl">
-          <div className="card-blue-login rounded-2xl p-8 shadow-xl">
-            <h1 className="text-2xl font-bold">Hello!</h1>
-            <p className="text-blue-100 text-sm mb-7">Sign up to your DOEIT Account</p>
+          <div className="card-white-signup rounded-2xl p-8 shadow-xl">
+            <h1 className="text-2xl font-bold text-blue-500">Hello!</h1>
+            <p className="text-blue-500 text-sm mb-7">Make your DOEIT account</p>
 
             <form onSubmit={handleSubmit} className="space-y-10">
               <div className="relative">
-                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-400" />
+                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white-400" />
                 <input type="text" placeholder="Username" value={form.username}
                   onChange={e => handleChange('username', e.target.value)} className={inputClass} />
               </div>
 
               <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-400" />
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white-400" />
                 <input type="password" placeholder="Password" value={form.password}
                   onChange={e => handleChange('password', e.target.value)} className={inputClass} />
               </div>
@@ -107,7 +104,7 @@ export default function LoginPage() {
               <div className="flex justify-center">
                 <button
                   type="submit"
-                  className="bg-white hover:bg-blue-50 text-blue-500 font-semibold px-8 py-3 rounded-3xl flex items-center justify-center gap-2 shadow-md"
+                  className="bg-[#1177FF] hover:bg-blue-50 text-white-500 font-semibold px-8 py-3 rounded-3xl flex items-center justify-center gap-2 shadow-md"
                 >
                   <LogIn size={16} />
                   Sign up
@@ -116,8 +113,8 @@ export default function LoginPage() {
             </form>
 
             <p className="text-center text-xs text-blue-200 mt-5">
-              don&apos;t have account?{' '}
-              <a href="#" className="text-white underline font-medium">sign up here</a>
+              Already have an account?{' '}
+              <a href="/login" className="text-blue underline font-medium">Login here</a>
             </p>
           </div>
 
