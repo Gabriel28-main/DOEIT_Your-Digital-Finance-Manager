@@ -42,7 +42,7 @@ function BlobShape() {
   )
 }
 
-export default function LoginPage() {
+export default function SignPage() {
   const router = useRouter()
   const [form, setForm] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
