@@ -1,36 +1,119 @@
 'use client'
-import { useState } from 'react'
-import { Plus, X, Pencil, Trash2 } from 'lucide-react'
-import { ALLOCATION_CATEGORIES, AllocationCategory, formatRupiah } from '@/lib/mockData'
+import { useState, useRef, useEffect } from 'react'
+import { Plus, X, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { useApp, Category, formatRupiah } from '@/lib/AppContext'
 
+// ── Preset emojis ─────────────────────────────────────────────────────────────
 const PRESET_ICONS = ['🛒','🍔','🎓','🏠','⚡','💅','🧃','💊','🎮','✈️','📚','🚗','🏋️','🎵','💻','🎯','🛍️','☕']
 
-// ─── Shared modal form ───────────────────────────────────────────────────────
-interface ModalProps {
+// ── Three-dot dropdown menu ───────────────────────────────────────────────────
+function CardMenu({ onEdit, onDelete, isBlue }: { onEdit: () => void; onDelete: () => void; isBlue: boolean }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  return (
+    <div ref={ref} className="absolute top-2 right-2 z-20">
+      <button
+        onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
+        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all
+                    ${isBlue
+                      ? 'text-white/60 hover:text-white hover:bg-white/20'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
+      >
+        <MoreHorizontal size={15} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-8 w-36 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-30">
+          <button
+            onClick={e => { e.stopPropagation(); setOpen(false); onEdit() }}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+          >
+            <Pencil size={13} />
+            Edit
+          </button>
+          <div className="h-px bg-slate-100" />
+          <button
+            onClick={e => { e.stopPropagation(); setOpen(false); onDelete() }}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+          >
+            <Trash2 size={13} />
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Single category card ──────────────────────────────────────────────────────
+function BudgetCard({ category, index, onEdit, onDelete }: {
+  category: Category
+  index: number       // 0-based; odd index = blue, even = white
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const isBlue = index % 2 === 0   // 1st, 3rd, 5th… card = blue
+
+  return (
+    <div
+      className="relative rounded-2xl p-4 transition-all duration-200 hover:scale-[1.02] hover:shadow-md min-h-[110px]"
+      style={isBlue
+        ? { background: 'linear-gradient(135deg, #1177FF, #3b82f6)', color: 'white' }
+        : { background: 'white', border: '1px solid #f1f5f9' }
+      }
+    >
+      <CardMenu onEdit={onEdit} onDelete={onDelete} isBlue={isBlue} />
+
+      {/* Index badge */}
+      <div className={`text-[10px] font-bold mb-2 ${isBlue ? 'text-blue-200' : 'text-slate-300'}`}>
+        #{index + 1}
+      </div>
+
+      <div className={`text-xs font-semibold mb-3 flex items-center gap-1.5 uppercase tracking-wide pr-6
+                       ${isBlue ? 'text-blue-100' : 'text-slate-500'}`}>
+        <span>{category.icon}</span>
+        <span className="truncate">{category.name}</span>
+      </div>
+      <div className={`text-[10px] font-medium mb-0.5 ${isBlue ? 'text-blue-200' : 'text-slate-400'}`}>
+        Budget
+      </div>
+      <div className={`text-lg font-bold ${isBlue ? 'text-white' : 'text-blue-600'}`}>
+        {formatRupiah(category.budget)}
+      </div>
+    </div>
+  )
+}
+
+// ── Shared modal (add + edit) ─────────────────────────────────────────────────
+const emptyForm = { name: '', budget: '', icon: '🛒', customEmoji: '' }
+
+function CategoryModal({ title, form, useCustom, error, onChange, onToggleCustom, onCancel, onConfirm, confirmLabel }: {
   title: string
-  form: { name: string; amount: string; icon: string; customEmoji: string }
+  form: typeof emptyForm
   useCustom: boolean
   error: string
-  onChangeForm: (f: ModalProps['form']) => void
+  onChange: (f: typeof emptyForm) => void
   onToggleCustom: () => void
   onCancel: () => void
   onConfirm: () => void
   confirmLabel: string
-}
-
-function CategoryModal({
-  title, form, useCustom, error,
-  onChangeForm, onToggleCustom, onCancel, onConfirm, confirmLabel,
-}: ModalProps) {
+}) {
   const activeIcon = useCustom ? (form.customEmoji || '❓') : form.icon
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div
-        className="rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
-        style={{ background: 'linear-gradient(145deg, #1177FF 0%, #3b82f6 100%)' }}
-      >
-        {/* Header */}
+      <div className="rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
+           style={{ background: 'linear-gradient(145deg, #1177FF 0%, #3b82f6 100%)' }}>
         <div className="flex items-center justify-between pt-5 px-7">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
@@ -48,64 +131,44 @@ function CategoryModal({
           <div>
             <label className="text-white/60 text-xs font-medium block mb-1.5">Category Name</label>
             <div className="border-b border-white/30 pb-1">
-              <input
-                type="text"
-                placeholder="e.g. Transport"
-                value={form.name}
-                onChange={e => onChangeForm({ ...form, name: e.target.value })}
-                className="w-full bg-transparent text-white placeholder:text-white/30 text-sm focus:outline-none"
-              />
+              <input type="text" placeholder="e.g. Transport" value={form.name}
+                onChange={e => onChange({ ...form, name: e.target.value })}
+                className="w-full bg-transparent text-white placeholder:text-white/30 text-sm focus:outline-none" />
             </div>
           </div>
 
-          {/* Amount */}
+          {/* Budget */}
           <div>
-            <label className="text-white/60 text-xs font-medium block mb-1.5">Amount</label>
+            <label className="text-white/60 text-xs font-medium block mb-1.5">Budget Amount</label>
             <div className="border-b border-white/30 pb-1 flex items-center gap-2">
               <span className="text-white/50 text-sm">Rp</span>
-              <input
-                type="number"
-                placeholder="0"
-                value={form.amount}
-                onChange={e => onChangeForm({ ...form, amount: e.target.value })}
-                className="w-full bg-transparent text-white placeholder:text-white/30 text-sm focus:outline-none"
-              />
+              <input type="number" placeholder="0" value={form.budget}
+                onChange={e => onChange({ ...form, budget: e.target.value })}
+                className="w-full bg-transparent text-white placeholder:text-white/30 text-sm focus:outline-none" />
             </div>
-            {form.amount && !isNaN(parseFloat(form.amount)) && (
-              <p className="text-white/40 text-xs mt-1">{formatRupiah(parseFloat(form.amount))}</p>
+            {form.budget && !isNaN(parseFloat(form.budget)) && (
+              <p className="text-white/40 text-xs mt-1">{formatRupiah(parseFloat(form.budget))}</p>
             )}
           </div>
 
-          {/* Icon picker */}
+          {/* Icon */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-white/60 text-xs font-medium">Icon</label>
-              <button
-                onClick={onToggleCustom}
-                className="text-white/50 hover:text-white text-xs underline transition-colors"
-              >
+              <button onClick={onToggleCustom} className="text-white/50 hover:text-white text-xs underline transition-colors">
                 {useCustom ? 'Use preset' : 'Custom emoji'}
               </button>
             </div>
             {useCustom ? (
-              <input
-                type="text"
-                placeholder="Paste any emoji, e.g. 🌟"
-                value={form.customEmoji}
-                onChange={e => onChangeForm({ ...form, customEmoji: e.target.value })}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2
-                           text-white placeholder:text-white/30 text-sm focus:outline-none
-                           focus:ring-2 focus:ring-white/30"
-              />
+              <input type="text" placeholder="Paste any emoji, e.g. 🌟" value={form.customEmoji}
+                onChange={e => onChange({ ...form, customEmoji: e.target.value })}
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white placeholder:text-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-white/30" />
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {PRESET_ICONS.map(ic => (
-                  <button
-                    key={ic}
-                    onClick={() => onChangeForm({ ...form, icon: ic })}
-                    className={`w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all duration-150
-                                ${form.icon === ic ? 'bg-white/30 ring-2 ring-white scale-110' : 'bg-white/10 hover:bg-white/20'}`}
-                  >
+                  <button key={ic} onClick={() => onChange({ ...form, icon: ic })}
+                    className={`w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all
+                                ${form.icon === ic ? 'bg-white/30 ring-2 ring-white scale-110' : 'bg-white/10 hover:bg-white/20'}`}>
                     {ic}
                   </button>
                 ))}
@@ -113,22 +176,15 @@ function CategoryModal({
             )}
           </div>
 
-          {error && (
-            <p className="text-red-200 text-xs bg-red-500/20 rounded-lg px-3 py-2">{error}</p>
-          )}
+          {error && <p className="text-red-200 text-xs bg-red-500/20 rounded-lg px-3 py-2">{error}</p>}
 
-          {/* Actions */}
           <div className="flex gap-3 justify-end pt-1">
-            <button
-              onClick={onCancel}
-              className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-all"
-            >
+            <button onClick={onCancel}
+              className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-all">
               CANCEL
             </button>
-            <button
-              onClick={onConfirm}
-              className="px-5 py-2 rounded-xl bg-white hover:bg-blue-50 text-blue-600 text-sm font-semibold transition-all shadow-md"
-            >
+            <button onClick={onConfirm}
+              className="px-5 py-2 rounded-xl bg-white hover:bg-blue-50 text-blue-600 text-sm font-semibold transition-all shadow-md">
               {confirmLabel}
             </button>
           </div>
@@ -138,133 +194,48 @@ function CategoryModal({
   )
 }
 
-// ─── Inline category card with edit/delete overlay ───────────────────────────
-interface CardProps {
-  category: AllocationCategory
-  onEdit: () => void
-  onDelete: () => void
-}
+// ── Page ──────────────────────────────────────────────────────────────────────
+export default function BudgetingPage() {
+  const { categories, addCategory, updateCategory, deleteCategory } = useApp()
 
-function BudgetCard({ category, onEdit, onDelete }: CardProps) {
-  const isBlue = category.color === 'blue'
-  const [hovered, setHovered] = useState(false)
+  const [showAdd,   setShowAdd]   = useState(false)
+  const [addForm,   setAddForm]   = useState(emptyForm)
+  const [addCustom, setAddCustom] = useState(false)
+  const [addError,  setAddError]  = useState('')
 
-  return (
-    <div
-      className="relative rounded-2xl p-4 transition-all duration-200 hover:scale-[1.02] hover:shadow-md cursor-pointer"
-      style={isBlue
-        ? { background: 'linear-gradient(135deg, #1177FF, #3b82f6)', color: 'white' }
-        : { background: 'white', border: '1px solid #f1f5f9' }
-      }
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Edit / delete buttons — shown on hover */}
-      {hovered && (
-        <div className="absolute top-2 right-2 flex gap-1 z-10">
-          <button
-            onClick={e => { e.stopPropagation(); onEdit() }}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all
-                        ${isBlue ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
-          >
-            <Pencil size={13} />
-          </button>
-          <button
-            onClick={e => { e.stopPropagation(); onDelete() }}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all
-                        ${isBlue ? 'bg-white/20 hover:bg-red-400/40 text-white' : 'bg-red-50 hover:bg-red-100 text-red-500'}`}
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
-      )}
-
-      <div className={`text-xs font-semibold mb-3 flex items-center gap-1.5 uppercase tracking-wide
-                       ${isBlue ? 'text-blue-100' : 'text-slate-500'}`}>
-        <span>{category.icon}</span>
-        <span className="truncate">{category.name}</span>
-      </div>
-      <div className={`text-[10px] font-medium mb-0.5 ${isBlue ? 'text-blue-200' : 'text-slate-400'}`}>
-        Amount
-      </div>
-      <div className={`text-lg font-bold ${isBlue ? 'text-white' : 'text-blue-600'}`}>
-        {formatRupiah(category.amount)}
-      </div>
-    </div>
-  )
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-const emptyForm = { name: '', amount: '', icon: '🛒', customEmoji: '' }
-
-export default function AllocationPage() {
-  const [categories, setCategories] = useState<AllocationCategory[]>(ALLOCATION_CATEGORIES)
-
-  // Add modal
-  const [showAdd, setShowAdd]       = useState(false)
-  const [addForm, setAddForm]       = useState(emptyForm)
-  const [addCustom, setAddCustom]   = useState(false)
-  const [addError, setAddError]     = useState('')
-
-  // Edit modal
-  const [editId, setEditId]         = useState<string | null>(null)
-  const [editForm, setEditForm]     = useState(emptyForm)
+  const [editId,     setEditId]     = useState<string | null>(null)
+  const [editForm,   setEditForm]   = useState(emptyForm)
   const [editCustom, setEditCustom] = useState(false)
-  const [editError, setEditError]   = useState('')
+  const [editError,  setEditError]  = useState('')
 
-  // Delete confirm
-  const [deleteId, setDeleteId]     = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
-  // ── helpers ──
-  const validate = (form: typeof emptyForm) => {
-    if (!form.name.trim() || !form.amount) return 'Please fill in name and amount.'
-    if (isNaN(parseFloat(form.amount)) || parseFloat(form.amount) <= 0)
-      return 'Amount must be a positive number.'
+  const validate = (f: typeof emptyForm) => {
+    if (!f.name.trim() || !f.budget) return 'Please fill in name and budget.'
+    if (isNaN(parseFloat(f.budget)) || parseFloat(f.budget) <= 0) return 'Budget must be a positive number.'
     return ''
   }
+  const resolveIcon = (f: typeof emptyForm, custom: boolean) => custom ? (f.customEmoji || '❓') : f.icon
 
-  const resolveIcon = (form: typeof emptyForm, useCustom: boolean) =>
-    useCustom ? (form.customEmoji || '❓') : form.icon
-
-  // ── add ──
-  const openAdd = () => { setAddForm(emptyForm); setAddCustom(false); setAddError(''); setShowAdd(true) }
-  const closeAdd = () => { setShowAdd(false); setAddError('') }
+  // Add
   const handleAdd = () => {
     const err = validate(addForm)
     if (err) { setAddError(err); return }
-    setCategories(prev => [...prev, {
-      id: Date.now().toString(),
-      name: addForm.name,
-      amount: parseFloat(addForm.amount),
-      icon: resolveIcon(addForm, addCustom),
-      color: 'white',
-    }])
-    closeAdd()
+    addCategory({ name: addForm.name, budget: parseFloat(addForm.budget), icon: resolveIcon(addForm, addCustom) })
+    setShowAdd(false); setAddForm(emptyForm); setAddCustom(false); setAddError('')
   }
 
-  // ── edit ──
-  const openEdit = (cat: AllocationCategory) => {
+  // Edit
+  const openEdit = (cat: Category) => {
     setEditId(cat.id)
-    setEditForm({ name: cat.name, amount: String(cat.amount), icon: cat.icon, customEmoji: '' })
-    setEditCustom(false)
-    setEditError('')
+    setEditForm({ name: cat.name, budget: String(cat.budget), icon: cat.icon, customEmoji: '' })
+    setEditCustom(false); setEditError('')
   }
-  const closeEdit = () => { setEditId(null); setEditError('') }
   const handleEdit = () => {
     const err = validate(editForm)
     if (err) { setEditError(err); return }
-    setCategories(prev => prev.map(c =>
-      c.id === editId
-        ? { ...c, name: editForm.name, amount: parseFloat(editForm.amount), icon: resolveIcon(editForm, editCustom) }
-        : c
-    ))
-    closeEdit()
-  }
-
-  // ── delete ──
-  const handleDelete = () => {
-    setCategories(prev => prev.filter(c => c.id !== deleteId))
-    setDeleteId(null)
+    updateCategory(editId!, { name: editForm.name, budget: parseFloat(editForm.budget), icon: resolveIcon(editForm, editCustom) })
+    setEditId(null); setEditError('')
   }
 
   return (
@@ -277,58 +248,39 @@ export default function AllocationPage() {
           Budgeting
         </h2>
 
+        {categories.length === 0 && (
+          <p className="text-slate-400 text-sm mb-6">No categories yet. Add one to get started!</p>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {categories.map(cat => (
-            <BudgetCard
-              key={cat.id}
-              category={cat}
+          {categories.map((cat, i) => (
+            <BudgetCard key={cat.id} category={cat} index={i}
               onEdit={() => openEdit(cat)}
-              onDelete={() => setDeleteId(cat.id)}
-            />
+              onDelete={() => setDeleteId(cat.id)} />
           ))}
 
-          {/* Add card */}
-          <button
-            onClick={openAdd}
-            className="rounded-2xl border-2 border-dashed border-blue-200 p-4
-                       flex flex-col items-center justify-center gap-2 min-h-[110px]
-                       text-blue-400 hover:border-blue-400 hover:bg-blue-50/50
-                       transition-all duration-200"
-          >
+          <button onClick={() => { setAddForm(emptyForm); setAddCustom(false); setAddError(''); setShowAdd(true) }}
+            className="rounded-2xl border-2 border-dashed border-blue-200 p-4 flex flex-col items-center justify-center gap-2 min-h-[110px] text-blue-400 hover:border-blue-400 hover:bg-blue-50/50 transition-all">
             <Plus size={20} />
-            <span className="text-xs font-medium">Add More Category</span>
+            <span className="text-xs font-medium">Add Category</span>
           </button>
         </div>
       </div>
 
       {/* Add modal */}
       {showAdd && (
-        <CategoryModal
-          title="New Category"
-          form={addForm}
-          useCustom={addCustom}
-          error={addError}
-          onChangeForm={setAddForm}
-          onToggleCustom={() => setAddCustom(v => !v)}
-          onCancel={closeAdd}
-          onConfirm={handleAdd}
-          confirmLabel="CREATE"
-        />
+        <CategoryModal title="New Category" form={addForm} useCustom={addCustom} error={addError}
+          onChange={setAddForm} onToggleCustom={() => setAddCustom(v => !v)}
+          onCancel={() => { setShowAdd(false); setAddError('') }}
+          onConfirm={handleAdd} confirmLabel="CREATE" />
       )}
 
       {/* Edit modal */}
       {editId && (
-        <CategoryModal
-          title="Edit Category"
-          form={editForm}
-          useCustom={editCustom}
-          error={editError}
-          onChangeForm={setEditForm}
-          onToggleCustom={() => setEditCustom(v => !v)}
-          onCancel={closeEdit}
-          onConfirm={handleEdit}
-          confirmLabel="SAVE"
-        />
+        <CategoryModal title="Edit Category" form={editForm} useCustom={editCustom} error={editError}
+          onChange={setEditForm} onToggleCustom={() => setEditCustom(v => !v)}
+          onCancel={() => { setEditId(null); setEditError('') }}
+          onConfirm={handleEdit} confirmLabel="SAVE" />
       )}
 
       {/* Delete confirm */}
@@ -338,19 +290,15 @@ export default function AllocationPage() {
             <div className="text-3xl mb-3">🗑️</div>
             <h3 className="font-semibold text-slate-800 mb-1">Delete category?</h3>
             <p className="text-slate-400 text-sm mb-5">
-              {categories.find(c => c.id === deleteId)?.name} will be removed.
+              <strong>{categories.find(c => c.id === deleteId)?.name}</strong> will be removed permanently.
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-all"
-              >
+              <button onClick={() => setDeleteId(null)}
+                className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-all">
                 Cancel
               </button>
-              <button
-                onClick={handleDelete}
-                className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-all"
-              >
+              <button onClick={() => { deleteCategory(deleteId); setDeleteId(null) }}
+                className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-all">
                 Delete
               </button>
             </div>
