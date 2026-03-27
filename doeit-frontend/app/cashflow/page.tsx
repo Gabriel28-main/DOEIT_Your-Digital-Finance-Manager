@@ -54,7 +54,7 @@ export default function CashflowPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
 
-        {/* ── Arus Kas panel ── */}
+        {/* ── Arus Kas panel — matches Dashboard table style ── */}
         <div className="card">
           <h2 className="font-semibold text-slate-700 flex items-center gap-2 mb-4">
             <RefreshCw size={15} className="text-blue-500" />
@@ -64,69 +64,84 @@ export default function CashflowPage() {
           {transactions.length === 0 ? (
             <p className="text-slate-400 text-sm py-4 text-center">No transactions yet.</p>
           ) : (
-            <div className="space-y-0">
-              {transactions.map(t => {
-                const isExpanded = expandedId === t.id
-                const hasNote = !!t.description?.trim()
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-slate-400 text-xs">
+                    <th className="text-left pb-3 font-medium">Date</th>
+                    <th className="text-left pb-3 font-medium">Amount</th>
+                    <th className="text-left pb-3 font-medium">Category</th>
+                    <th className="pb-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map(t => {
+                    const isExpanded = expandedId === t.id
+                    const hasNote    = !!t.description?.trim()
 
-                return (
-                  <div key={t.id} className="border-b border-slate-50 last:border-0">
-                    {/* ── Main row ── */}
-                    <div className="flex items-center py-2.5 text-sm gap-3">
-                      <span className="text-slate-600 whitespace-nowrap w-20 shrink-0">
-                        {displayDate(t.date)}
-                      </span>
-                      <span className={`font-medium whitespace-nowrap w-28 shrink-0
-                                        ${t.type === 'income' ? 'text-emerald-500' : 'text-red-400'}`}>
-                        {t.type === 'income' ? '+' : ''}{t.amount.toLocaleString('id-ID')}
-                      </span>
-                      <span className="text-slate-600 truncate flex-1 min-w-0">
-                        {catName(t.categoryId)}
-                      </span>
-
-                      {/* Three-dot + "More" on hover */}
-                      <div className="group flex items-center gap-1 shrink-0">
-                        <span className="text-[10px] font-semibold text-blue-400 opacity-0 group-hover:opacity-100
-                                         translate-x-1 group-hover:translate-x-0 transition-all duration-150 select-none">
-                          More
-                        </span>
-                        <button
-                          onClick={() => toggle(t.id)}
-                          aria-label="Toggle note"
-                          className={`p-1 rounded-lg transition-colors duration-150
-                                      ${isExpanded
-                                        ? 'text-blue-500 bg-blue-100'
-                                        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
-                          style={{
-                            transform:  isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.2s ease, color 0.15s, background 0.15s',
-                          }}
+                    return (
+                      <>
+                        {/* ── Main row ── */}
+                        <tr
+                          key={t.id}
+                          className="hover:bg-slate-50/50 transition-colors border-t border-slate-50 first:border-0"
                         >
-                          <MoreHorizontal size={15} />
-                        </button>
-                      </div>
-                    </div>
+                          <td className="py-2 pr-4 text-slate-600 whitespace-nowrap">
+                            {displayDate(t.date)}
+                          </td>
+                          <td className={`py-2 pr-4 font-medium whitespace-nowrap
+                                          ${t.type === 'income' ? 'text-emerald-500' : 'text-red-400'}`}>
+                            {t.type === 'income' ? '+' : '-'}
+                            {Math.abs(t.amount).toLocaleString('id-ID')}
+                          </td>
+                          <td className="py-2 pr-4 text-slate-600 whitespace-nowrap">
+                            {catName(t.categoryId)}
+                          </td>
+                          {/* More button */}
+                          <td className="py-2 text-right whitespace-nowrap">
+                            <div className="inline-flex items-center gap-1 group">
+                              <span className="text-[10px] font-semibold text-blue-400 opacity-0 group-hover:opacity-100
+                                               translate-x-1 group-hover:translate-x-0 transition-all duration-150 select-none">
+                                More
+                              </span>
+                              <button
+                                onClick={() => toggle(t.id)}
+                                aria-label="Toggle note"
+                                className={`p-1 rounded-lg transition-colors duration-150
+                                            ${isExpanded
+                                              ? 'text-blue-500 bg-blue-100'
+                                              : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
+                                style={{
+                                  transform:  isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                  transition: 'transform 0.2s ease, color 0.15s, background 0.15s',
+                                }}
+                              >
+                                <MoreHorizontal size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
 
-                    {/* ── Expandable note ── */}
-                    <div
-                      className="overflow-hidden transition-all duration-300 ease-in-out"
-                      style={{ maxHeight: isExpanded ? '120px' : '0px' }}
-                    >
-                      <div className={`pb-3 px-1 transition-opacity duration-200
-                                       ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
-                        <div className="flex items-start gap-2 bg-slate-50 rounded-xl px-3 py-2.5">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400 mt-0.5 shrink-0">
-                            Catatan
-                          </span>
-                          <p className="text-xs text-slate-500 leading-relaxed">
-                            {hasNote ? t.description : <em>No note added.</em>}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+                        {/* ── Expandable note row ── */}
+                        {isExpanded && (
+                          <tr key={`${t.id}-note`}>
+                            <td colSpan={4} className="pb-3 pt-0 px-0">
+                              <div className="flex items-start gap-2 bg-slate-50 rounded-xl px-3 py-2.5">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400 mt-0.5 shrink-0">
+                                  Catatan
+                                </span>
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                  {hasNote ? t.description : <em>No note added.</em>}
+                                </p>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -177,7 +192,7 @@ export default function CashflowPage() {
                   <option disabled>Add categories in Budgeting tab first</option>
                 )}
                 {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>

@@ -1,11 +1,11 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, RefreshCw, LayoutGrid, User, LogOut } from 'lucide-react'
+import { Home, RefreshCw, LayoutGrid, User, LogOut } from 'lucide-react'
 import DoeitLogo from '@/components/ui/DoeitLogo'
 
 const navItems = [
-  { label: 'DASHBOARD',  href: '/dashboard',  icon: LayoutDashboard },
+  { label: 'DASHBOARD',  href: '/dashboard',  icon: Home },
   { label: 'CASH FLOW',  href: '/cashflow',   icon: RefreshCw },
   { label: 'BUDGETING',  href: '/allocation', icon: LayoutGrid },
 ]

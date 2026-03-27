@@ -1,15 +1,52 @@
 'use client'
-import { RefreshCw, TrendingUp, TrendingDown } from 'lucide-react'
+import {
+  RefreshCw, TrendingUp, TrendingDown, ShoppingCart, Coffee, BookOpen, Home, Zap, Sparkles,
+  ShoppingBag, HeartPulse, Music, Navigation, Monitor,
+  Target, Camera, Gift, Truck, Umbrella, Feather, Package, LayoutGrid, PieChart
+} from 'lucide-react'
 import { useApp, calcStats, formatRupiah } from '@/lib/AppContext'
 import StatCard from '@/components/ui/StatCard'
+
+// ── Icon map — must stay in sync with budgeting-page.tsx PRESET_ICONS ────────
+const ICON_MAP: Record<string, React.ElementType> = {
+  cart:     ShoppingCart,
+  coffee:   Coffee,
+  book:     BookOpen,
+  home:     Home,
+  zap:      Zap,
+  sparkles: Sparkles,
+  bag:      ShoppingBag,
+  heart:    HeartPulse,
+  music:    Music,
+  nav:      Navigation,
+  monitor:  Monitor,
+  target:   Target,
+  camera:   Camera,
+  gift:     Gift,
+  truck:    Truck,
+  umbrella: Umbrella,
+  feather:  Feather,
+  package:  Package,
+}
+
+function CategoryIcon({ iconKey, size = 14 }: { iconKey: string; size?: number }) {
+  const Icon = ICON_MAP[iconKey]
+  if (Icon) return <Icon size={size} strokeWidth={1.75} />
+  // Legacy emoji / unknown key — render as text
+  return <span style={{ fontSize: size, lineHeight: 1 }}>{iconKey}</span>
+}
+
+// Static color pattern for Alokasi cards: white → blue → blue → white (repeating)
+function isAllocBlue(i: number) {
+  const pos = i % 4
+  return pos === 1 || pos === 2
+}
 
 export default function DashboardPage() {
   const { transactions, categories } = useApp()
 
-  // balance = total income − total expenses  ✓
   const { income, expense, balance } = calcStats(transactions)
 
-  // Top 4 categories by budget amount (highest first) for Alokasi Pengeluaran
   const topAlloc = [...categories]
     .sort((a, b) => b.budget - a.budget)
     .slice(0, 4)
@@ -22,33 +59,23 @@ export default function DashboardPage() {
     return `${day}/${m}/${y}`
   }
 
+  // Show explicit negative sign when balance is negative
+  const balanceDisplay = (balance < 0 ? '- ' : '') + formatRupiah(balance)
+
   return (
     <div className="px-6 md:px-10 lg:px-14 py-6">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-slate-800">Hello, Ryan 👋</h1>
+        <h1 className="text-2xl font-bold text-slate-800">Hello, Ryan</h1>
       </div>
 
       {/* ── Stats row ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-20 mb-8">
-        <StatCard
-          label="Saldo"
-          value={formatRupiah(balance)}
-          icon={<RefreshCw size={12} />}
-          variant="blue"
-        />
-        <StatCard
-          label="Pemasukan"
-          value={formatRupiah(income)}
-          icon={<TrendingUp size={12} />}
-        />
-        <StatCard
-          label="Pengeluaran"
-          value={formatRupiah(expense)}
-          icon={<TrendingDown size={12} />}
-        />
+        <StatCard label="Balance"       value={balanceDisplay}      icon={<PieChart size={12} />}  variant="blue" />
+        <StatCard label="Pemasukan"   value={formatRupiah(income)} icon={<TrendingUp size={12} />} />
+        <StatCard label="Pengeluaran" value={formatRupiah(expense)}icon={<TrendingDown size={12} />} />
       </div>
 
-      {/* ── Bottom row: Arus Kas + Alokasi Pengeluaran ── */}
+      {/* ── Bottom row ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
 
         {/* Recent transactions */}
@@ -74,17 +101,12 @@ export default function DashboardPage() {
                 <tbody className="divide-y divide-slate-50">
                   {transactions.slice(0, 8).map(t => (
                     <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-2 pr-4 text-slate-600 whitespace-nowrap">
-                        {displayDate(t.date)}
-                      </td>
+                      <td className="py-2 pr-4 text-slate-600 whitespace-nowrap">{displayDate(t.date)}</td>
                       <td className={`py-2 pr-4 font-medium whitespace-nowrap
                                       ${t.type === 'income' ? 'text-emerald-500' : 'text-red-400'}`}>
-                        {t.type === 'income' ? '+' : ''}
-                        {t.amount.toLocaleString('id-ID')}
+                        {t.type === 'income' ? '+' : '-'}{Math.abs(t.amount).toLocaleString('id-ID')}
                       </td>
-                      <td className="py-2 text-slate-600 whitespace-nowrap">
-                        {catName(t.categoryId)}
-                      </td>
+                      <td className="py-2 text-slate-600 whitespace-nowrap">{catName(t.categoryId)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -93,11 +115,11 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Alokasi Pengeluaran — top 4 by budget */}
+        {/* Budgets */}
         <div className="card">
           <h2 className="font-semibold text-slate-700 flex items-center gap-2 mb-4">
-            <span className="text-blue-500">⊞</span>
-            Alokasi Pengeluaran
+            <LayoutGrid />
+            Budgets
           </h2>
 
           {categories.length === 0 ? (
@@ -107,25 +129,27 @@ export default function DashboardPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {topAlloc.map((cat, i) => {
-                const isBlue = i % 2 === 0
+                const blue = isAllocBlue(i)
                 return (
                   <div
                     key={cat.id}
                     className="rounded-2xl p-4 transition-all duration-200 hover:scale-[1.02] hover:shadow-md"
-                    style={isBlue
+                    style={blue
                       ? { background: 'linear-gradient(135deg, #1177FF, #3b82f6)', color: 'white' }
                       : { background: 'white', border: '1px solid #f1f5f9' }
                     }
                   >
                     <div className={`text-xs font-semibold mb-3 flex items-center gap-1.5 uppercase tracking-wide
-                                     ${isBlue ? 'text-blue-100' : 'text-slate-500'}`}>
-                      <span>{cat.icon}</span>
+                                     ${blue ? 'text-blue-100' : 'text-slate-500'}`}>
+                      <span className={blue ? 'text-white' : 'text-blue-500'}>
+                        <CategoryIcon iconKey={cat.icon} size={14} />
+                      </span>
                       <span className="truncate">{cat.name}</span>
                     </div>
-                    <div className={`text-[10px] font-medium mb-0.5 ${isBlue ? 'text-blue-200' : 'text-slate-400'}`}>
+                    <div className={`text-[10px] font-medium mb-0.5 ${blue ? 'text-blue-200' : 'text-slate-400'}`}>
                       Budget
                     </div>
-                    <div className={`text-lg font-bold ${isBlue ? 'text-white' : 'text-blue-600'}`}>
+                    <div className={`text-lg font-bold ${blue ? 'text-white' : 'text-blue-600'}`}>
                       {formatRupiah(cat.budget)}
                     </div>
                   </div>

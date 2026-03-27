@@ -1,17 +1,50 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { Plus, X, MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import {
+  Plus, X, MoreVertical, Pencil, Trash2,
+  ShoppingCart, Coffee, BookOpen, Home, Zap, Sparkles,
+  ShoppingBag, HeartPulse, Music, Navigation, Monitor,
+  Target, Camera, Gift, Truck, Umbrella, Feather, Package, LayoutGrid
+} from 'lucide-react'
 import { useApp, Category, formatRupiah } from '@/lib/AppContext'
 
-// ── Preset emojis ─────────────────────────────────────────────────────────────
-const PRESET_ICONS = ['🛒','🍔','🎓','🏠','⚡','💅','🧃','💊','🎮','✈️','📚','🚗','🏋️','🎵','💻','🎯','🛍️','☕']
+// ── Preset icons (lucide-react) ───────────────────────────────────────────────
+const PRESET_ICONS: { key: string; Icon: React.ElementType; label: string }[] = [
+  { key: 'cart',      Icon: ShoppingCart, label: 'Groceries'  },
+  { key: 'coffee',    Icon: Coffee,       label: 'Food'       },
+  { key: 'book',      Icon: BookOpen,     label: 'School'     },
+  { key: 'home',      Icon: Home,         label: 'Housing'    },
+  { key: 'zap',       Icon: Zap,          label: 'Electric'   },
+  { key: 'sparkles',  Icon: Sparkles,     label: 'Life Style' },
+  { key: 'bag',       Icon: ShoppingBag,  label: 'Shopping'   },
+  { key: 'heart',     Icon: HeartPulse,   label: 'Medical'    },
+  { key: 'music',     Icon: Music,        label: 'Music'      },
+  { key: 'nav',       Icon: Navigation,   label: 'Travel'     },
+  { key: 'monitor',   Icon: Monitor,      label: 'Tech'       },
+  { key: 'target',    Icon: Target,       label: 'Goals'      },
+  { key: 'camera',    Icon: Camera,       label: 'Photo'      },
+  { key: 'gift',      Icon: Gift,         label: 'Gifts'      },
+  { key: 'truck',     Icon: Truck,        label: 'Delivery'   },
+  { key: 'umbrella',  Icon: Umbrella,     label: 'Insurance'  },
+  { key: 'feather',   Icon: Feather,      label: 'Misc'       },
+  { key: 'package',   Icon: Package,      label: 'Storage'    },
+]
 
-// ── Three-dot dropdown menu ───────────────────────────────────────────────────
+// Render icon by key; fall back to text/emoji for any legacy data
+function RenderIcon({ iconKey, size = 16 }: { iconKey: string; size?: number }) {
+  const found = PRESET_ICONS.find(p => p.key === iconKey)
+  if (found) {
+    const { Icon } = found
+    return <Icon size={size} strokeWidth={1.75} />
+  }
+  return <span style={{ fontSize: size, lineHeight: 1 }}>{iconKey}</span>
+}
+
+// ── Three-dot dropdown ────────────────────────────────────────────────────────
 function CardMenu({ onEdit, onDelete, isBlue }: { onEdit: () => void; onDelete: () => void; isBlue: boolean }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
@@ -38,16 +71,14 @@ function CardMenu({ onEdit, onDelete, isBlue }: { onEdit: () => void; onDelete: 
             onClick={e => { e.stopPropagation(); setOpen(false); onEdit() }}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
           >
-            <Pencil size={13} />
-            Edit
+            <Pencil size={13} /> Edit
           </button>
           <div className="h-px bg-slate-100" />
           <button
             onClick={e => { e.stopPropagation(); setOpen(false); onDelete() }}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
           >
-            <Trash2 size={13} />
-            Delete
+            <Trash2 size={13} /> Delete
           </button>
         </div>
       )}
@@ -58,44 +89,44 @@ function CardMenu({ onEdit, onDelete, isBlue }: { onEdit: () => void; onDelete: 
 // ── Single category card ──────────────────────────────────────────────────────
 function BudgetCard({ category, index, onEdit, onDelete }: {
   category: Category
-  index: number       // 0-based; odd index = blue, even = white
+  index: number
   onEdit: () => void
   onDelete: () => void
 }) {
-  const isBlue = index % 2 === 0   // 1st, 3rd, 5th… card = blue
+  const blue = index % 2 === 0   // alternating: 1st blue, 2nd white, 3rd blue…
 
   return (
     <div
       className="relative rounded-2xl p-4 transition-all duration-200 hover:scale-[1.02] hover:shadow-md min-h-[110px]"
-      style={isBlue
+      style={blue
         ? { background: 'linear-gradient(135deg, #1177FF, #3b82f6)', color: 'white' }
         : { background: 'white', border: '1px solid #f1f5f9' }
       }
     >
-      <CardMenu onEdit={onEdit} onDelete={onDelete} isBlue={isBlue} />
+      <CardMenu onEdit={onEdit} onDelete={onDelete} isBlue={blue} />
 
-      {/* Index badge */}
-      <div className={`text-[10px] font-bold mb-2 ${isBlue ? 'text-blue-200' : 'text-slate-300'}`}>
-        #{index + 1}
+      {/* Icon badge */}
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2
+                       ${blue ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-500'}`}>
+        <RenderIcon iconKey={category.icon} size={16} />
       </div>
 
-      <div className={`text-xs font-semibold mb-3 flex items-center gap-1.5 uppercase tracking-wide pr-6
-                       ${isBlue ? 'text-blue-100' : 'text-slate-500'}`}>
-        <span>{category.icon}</span>
-        <span className="truncate">{category.name}</span>
+      <div className={`text-xs font-semibold mb-3 uppercase tracking-wide pr-6 truncate
+                       ${blue ? 'text-blue-100' : 'text-slate-500'}`}>
+        {category.name}
       </div>
-      <div className={`text-[10px] font-medium mb-0.5 ${isBlue ? 'text-blue-200' : 'text-slate-400'}`}>
-        Budget
+      <div className={`text-[10px] font-medium mb-0.5 ${blue ? 'text-blue-200' : 'text-slate-400'}`}>
+        Amount
       </div>
-      <div className={`text-lg font-bold ${isBlue ? 'text-white' : 'text-blue-600'}`}>
+      <div className={`text-lg font-bold ${blue ? 'text-white' : 'text-blue-600'}`}>
         {formatRupiah(category.budget)}
       </div>
     </div>
   )
 }
 
-// ── Shared modal (add + edit) ─────────────────────────────────────────────────
-const emptyForm = { name: '', budget: '', icon: '🛒', customEmoji: '' }
+// ── Modal ─────────────────────────────────────────────────────────────────────
+const emptyForm = { name: '', budget: '', icon: 'cart', customEmoji: '' }
 
 function CategoryModal({ title, form, useCustom, error, onChange, onToggleCustom, onCancel, onConfirm, confirmLabel }: {
   title: string
@@ -108,16 +139,17 @@ function CategoryModal({ title, form, useCustom, error, onChange, onToggleCustom
   onConfirm: () => void
   confirmLabel: string
 }) {
-  const activeIcon = useCustom ? (form.customEmoji || '❓') : form.icon
+  const activeIconKey = useCustom ? (form.customEmoji || 'cart') : form.icon
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
            style={{ background: 'linear-gradient(145deg, #1177FF 0%, #3b82f6 100%)' }}>
+
         <div className="flex items-center justify-between pt-5 px-7">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
-              {activeIcon}
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white">
+              <RenderIcon iconKey={activeIconKey} size={20} />
             </div>
             <span className="text-white/80 text-sm font-medium">{title}</span>
           </div>
@@ -151,25 +183,33 @@ function CategoryModal({ title, form, useCustom, error, onChange, onToggleCustom
             )}
           </div>
 
-          {/* Icon */}
+          {/* Icon picker */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-white/60 text-xs font-medium">Icon</label>
-              <button onClick={onToggleCustom} className="text-white/50 hover:text-white text-xs underline transition-colors">
+              <button onClick={onToggleCustom}
+                className="text-white/50 hover:text-white text-xs underline transition-colors">
                 {useCustom ? 'Use preset' : 'Custom emoji'}
               </button>
             </div>
+
             {useCustom ? (
               <input type="text" placeholder="Paste any emoji, e.g. 🌟" value={form.customEmoji}
                 onChange={e => onChange({ ...form, customEmoji: e.target.value })}
                 className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white placeholder:text-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-white/30" />
             ) : (
               <div className="flex flex-wrap gap-1.5">
-                {PRESET_ICONS.map(ic => (
-                  <button key={ic} onClick={() => onChange({ ...form, icon: ic })}
-                    className={`w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all
-                                ${form.icon === ic ? 'bg-white/30 ring-2 ring-white scale-110' : 'bg-white/10 hover:bg-white/20'}`}>
-                    {ic}
+                {PRESET_ICONS.map(({ key, Icon, label }) => (
+                  <button
+                    key={key}
+                    title={label}
+                    onClick={() => onChange({ ...form, icon: key })}
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all
+                                ${form.icon === key
+                                  ? 'bg-white/30 ring-2 ring-white scale-110 text-white'
+                                  : 'bg-white/10 hover:bg-white/20 text-white/70 hover:text-white'}`}
+                  >
+                    <Icon size={16} strokeWidth={1.75} />
                   </button>
                 ))}
               </div>
@@ -198,26 +238,26 @@ function CategoryModal({ title, form, useCustom, error, onChange, onToggleCustom
 export default function BudgetingPage() {
   const { categories, addCategory, updateCategory, deleteCategory } = useApp()
 
-  const [showAdd,   setShowAdd]   = useState(false)
-  const [addForm,   setAddForm]   = useState(emptyForm)
-  const [addCustom, setAddCustom] = useState(false)
-  const [addError,  setAddError]  = useState('')
+  const [showAdd,    setShowAdd]    = useState(false)
+  const [addForm,    setAddForm]    = useState(emptyForm)
+  const [addCustom,  setAddCustom]  = useState(false)
+  const [addError,   setAddError]   = useState('')
 
   const [editId,     setEditId]     = useState<string | null>(null)
   const [editForm,   setEditForm]   = useState(emptyForm)
   const [editCustom, setEditCustom] = useState(false)
   const [editError,  setEditError]  = useState('')
 
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleteId,   setDeleteId]   = useState<string | null>(null)
 
   const validate = (f: typeof emptyForm) => {
     if (!f.name.trim() || !f.budget) return 'Please fill in name and budget.'
     if (isNaN(parseFloat(f.budget)) || parseFloat(f.budget) <= 0) return 'Budget must be a positive number.'
     return ''
   }
-  const resolveIcon = (f: typeof emptyForm, custom: boolean) => custom ? (f.customEmoji || '❓') : f.icon
+  const resolveIcon = (f: typeof emptyForm, custom: boolean) =>
+    custom ? (f.customEmoji || 'cart') : f.icon
 
-  // Add
   const handleAdd = () => {
     const err = validate(addForm)
     if (err) { setAddError(err); return }
@@ -225,7 +265,6 @@ export default function BudgetingPage() {
     setShowAdd(false); setAddForm(emptyForm); setAddCustom(false); setAddError('')
   }
 
-  // Edit
   const openEdit = (cat: Category) => {
     setEditId(cat.id)
     setEditForm({ name: cat.name, budget: String(cat.budget), icon: cat.icon, customEmoji: '' })
@@ -244,7 +283,7 @@ export default function BudgetingPage() {
 
       <div className="card">
         <h2 className="font-semibold text-slate-700 flex items-center gap-2 mb-6">
-          <span className="text-blue-500">⊞</span>
+          <LayoutGrid />
           Budgeting
         </h2>
 
@@ -259,15 +298,16 @@ export default function BudgetingPage() {
               onDelete={() => setDeleteId(cat.id)} />
           ))}
 
-          <button onClick={() => { setAddForm(emptyForm); setAddCustom(false); setAddError(''); setShowAdd(true) }}
-            className="rounded-2xl border-2 border-dashed border-blue-200 p-4 flex flex-col items-center justify-center gap-2 min-h-[110px] text-blue-400 hover:border-blue-400 hover:bg-blue-50/50 transition-all">
+          <button
+            onClick={() => { setAddForm(emptyForm); setAddCustom(false); setAddError(''); setShowAdd(true) }}
+            className="rounded-2xl border-2 border-dashed border-blue-200 p-4 flex flex-col items-center justify-center gap-2 min-h-[110px] text-blue-400 hover:border-blue-400 hover:bg-blue-50/50 transition-all"
+          >
             <Plus size={20} />
             <span className="text-xs font-medium">Add Category</span>
           </button>
         </div>
       </div>
 
-      {/* Add modal */}
       {showAdd && (
         <CategoryModal title="New Category" form={addForm} useCustom={addCustom} error={addError}
           onChange={setAddForm} onToggleCustom={() => setAddCustom(v => !v)}
@@ -275,7 +315,6 @@ export default function BudgetingPage() {
           onConfirm={handleAdd} confirmLabel="CREATE" />
       )}
 
-      {/* Edit modal */}
       {editId && (
         <CategoryModal title="Edit Category" form={editForm} useCustom={editCustom} error={editError}
           onChange={setEditForm} onToggleCustom={() => setEditCustom(v => !v)}
@@ -283,7 +322,6 @@ export default function BudgetingPage() {
           onConfirm={handleEdit} confirmLabel="SAVE" />
       )}
 
-      {/* Delete confirm */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-xl text-center">
