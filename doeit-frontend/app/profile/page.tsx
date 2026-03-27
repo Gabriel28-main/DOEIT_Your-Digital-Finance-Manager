@@ -1,5 +1,5 @@
 'use client'
-import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
+import { TrendingUp, TrendingDown, PieChart } from 'lucide-react'
 import StatCard from '@/components/ui/StatCard'
 import Avatar from '@/components/ui/Avatar'
 import { useApp, calcStats, formatRupiah } from '@/lib/AppContext'
@@ -26,7 +26,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-20">
-        <StatCard label="Balance"  value={balanceDisplay}       icon={<RefreshCw size={12} />}   variant="blue" />
+        <StatCard label="Balance"  value={balanceDisplay}       icon={<PieChart size={12} />}   variant="blue" />
         <StatCard label="Income"   value={formatRupiah(income)} icon={<TrendingUp size={12} />} />
         <StatCard label="Expenses" value={formatRupiah(expense)}icon={<TrendingDown size={12} />} />
       </div>

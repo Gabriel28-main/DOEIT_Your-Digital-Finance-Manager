@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, Lock, LogIn } from 'lucide-react'
+import { User, Lock, LogIn, Mail } from 'lucide-react'
 import DoeitLogo from '@/components/ui/DoeitLogo2'
 
 function BlobShape() {
@@ -44,22 +44,22 @@ function BlobShape() {
 
 export default function SignPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ username: '', password: '' })
+  const [form, setForm] = useState({ username: '', password: '', email: '' })
   const [error, setError] = useState('')
 
   const inputClass =
     "w-full bg-[#1177FF] rounded-3xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
 
-  const handleChange = (field: 'username' | 'password', value: string) => {
+  const handleChange = (field: 'username' | 'password' | 'email', value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
     setError('')
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const { username, password } = form
-    if (!username || !password) return setError('Please fill in all fields.')
-    if (username === 'RyanSmith' && password === 'password') {
+    const { username, password, email } = form
+    if (!username || !password || !email) return setError('Please fill in all fields.')
+    if (username === 'RyanSmith' && password === 'password' && email === 'ryansmith@gmail.com') {
       router.push('/dashboard')
     } else {
       setError('Invalid username or password.')
@@ -95,6 +95,12 @@ export default function SignPage() {
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white-400" />
                 <input type="password" placeholder="Password" value={form.password}
                   onChange={e => handleChange('password', e.target.value)} className={inputClass} />
+              </div>
+
+              <div className="relative">
+                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white-400" />
+                <input type="email" placeholder="Email@gmail.com" value={form.email}
+                  onChange={e => handleChange('email', e.target.value)} className={inputClass} />
               </div>
 
               {error && (
