@@ -8,3 +8,5 @@ Penggunaan Repository ini hanya digunakan untuk Update dan mengumpulkan hasil Co
 
 # CATATAN:
 agar tidak ada terjadinya pembentrokan file, maka di harapkan untuk file pengembangan Front-End dan Back-End di pisah.
+
+BACK END DOEIT SEDANG BERMASALAH DIKARENAKAN PENAMBAHAN GIT DI FOLDER BACKEND, HARAP MENUNGGU UNTUK PERBAIKA
